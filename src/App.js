@@ -1,24 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import styled from "styled-components";
+import {
+  NavLink,
+  Router,
+  Route,
+  Switch,
+  Link,
+  BrowserRouter,
+  HashRouter,
+  Redirect
+} from "react-router-dom";
+import { renderRoutes } from "react-router-config";
+import routes from "./route/index";
+import RouterMenu from "./components/RouterMenu/index";
+import { GlobalStyle } from "./GlobalStyle";
+
+console.log(routes);
+
+const StyledLink = styled(Link)`
+  color: palevioletred;
+  font-weight: bold;
+`;
+
+const StyledRoute = styled(Route)`
+  width: 100px;
+  height: 100px;
+`;
+
+const Demo = styled.div`
+  width:40vw;
+  height:100vh;
+  position:absolute;
+  top:0;
+  left:20vw;
+`;
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <GlobalStyle></GlobalStyle>
+      <RouterMenu routes={routes} />
+      <Demo><HashRouter>{renderRoutes(routes)}</HashRouter></Demo>
+      
     </div>
   );
 }
