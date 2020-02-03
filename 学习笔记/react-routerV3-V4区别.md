@@ -102,3 +102,53 @@ IndexRoute就是解决这个问题，显式指定Home是根路由的子组件，
     <Route path="/PropsButton" component={ComplexSelector} />
   </div>
 ```
+
+## ReactRouter路由传递参数
+
+### params
+
+```
+<Route path='/user/:name' component={UserPage}></Route>
+this.props.history.push("/user/sam");
+```
+```
+ this.props.params.name
+```
+
+### query
+
+query方式可以传递任意类型的值，但是页面的URL也是由query的值拼接的，URL很长且是明文传输。
+
+优点：刷新页面不会掉参数
+缺点：不安全，没有加密
+
+```
+// 跳转
+ this.props.history.push({
+        pathname: '/user',
+        query: data,
+    });
+// 取值
+this.props.location.query
+```
+
+### state
+
+state方式类似于post，依然可以传递任意类型的数据，而且可以不以明文方式传输。
+```
+this.props.history.push({
+        pathname: '/user',
+        state: data,
+    })
+```
+
+## 解决页面返回陷入循环 replace
+
+我们可以用this.props.history.replace来解决或者是router.replace
+
+它不会向 history 添加新记录，而是跟它的方法名一样 —— 替换掉当前的 history 记录。
+
+场景：比如用户从首页->上传图片页面->图片编辑页面->完成编辑跳到上传图片页面
+如果这是我们手机用自带的返回是回不去主页的，又会跳到编辑页面
+这里history会增加三条记录，如果觉得图片不行反复编辑的话就会产生更多的记录，更回不去
+所以我们把：上传图片页面->图片编辑页面->完成编辑跳到上传图片页面 这两步的跳转都改为replace，就相当于上传界面和编辑界面公用一条记录一样，调用原生返回直接能返回首页
