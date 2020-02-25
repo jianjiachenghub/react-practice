@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useEffect} from "react";
 import styled from "styled-components";
 import {
   NavLink,
@@ -36,10 +36,16 @@ const Demo = styled.div`
 `;
 
 function App() {
+  let myRef = React.createRef()
+
+  useEffect(() => {
+      myRef.current.doit()
+  }, [])
+
   return (
     <div className="App">
       <GlobalStyle></GlobalStyle>
-      <RouterMenu routes={routes} />
+      <RouterMenu routes={routes} ref = {myRef}/>
       <Demo><HashRouter>{renderRoutes(routes)}</HashRouter></Demo>
       
     </div>

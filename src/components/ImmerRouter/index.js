@@ -12,21 +12,15 @@ import {
 } from "react-router-dom";
 import { renderRoutes } from 'react-router-config';
 
+import {Title} from '../../GlobalStyle'
+
 function ImmerRouter({route}){
     return(
         <>
-        <ul id="menu">
-          <li>
-            <NavLink to="/immer/state">state</NavLink>
-          </li>
-          <li>
-            <NavLink to="/hooks/useReducer">useReducer</NavLink>
-          </li>
-          <li>
-            <NavLink to="/hooks/useContext">useContext</NavLink>
-          </li>
+        
+        <Title>ImmerRouter</Title>
           { renderRoutes (route.routes) }
-        </ul>
+
         </>
 
     )

@@ -1,4 +1,4 @@
-import { createGlobalStyle } from 'styled-components'
+import styled,{ createGlobalStyle } from 'styled-components'
 
 export const GlobalStyle = createGlobalStyle`
 	html, body, div, span, applet, object, iframe,
@@ -55,3 +55,12 @@ export const GlobalStyle = createGlobalStyle`
 		list-style:none;
 	}
 `
+export const Title = styled.div`
+/* Adapt the colors based on primary prop */
+  width:100%;
+  height:100px;
+  text-align:center;
+  line-height:100px;
+  font-size:50px
+
+`;

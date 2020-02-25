@@ -4,16 +4,14 @@ import {
   NavLink,
 } from "react-router-dom";
 import { renderRoutes } from 'react-router-config';
+import {Title} from '../../GlobalStyle'
 
 function CssInJsRouter({route}){
     return(
         <>
-        <ul id="menu">
-          <li>
-            <NavLink to="/CssInJsRouter/hello">Hello</NavLink>
-          </li>
+        <Title>CssInJsRouter</Title>
           { renderRoutes (route.routes) }
-        </ul>
+
         </>
 
     )

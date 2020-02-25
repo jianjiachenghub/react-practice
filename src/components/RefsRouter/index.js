@@ -11,10 +11,12 @@ import {
   Redirect
 } from "react-router-dom";
 import { renderRoutes } from 'react-router-config';
+import {Title} from '../../GlobalStyle'
 
 function HooksRouter({route}){
     return(
         <>
+        <Title>RefsRouter</Title>
         <ul id="menu">
           <li>
             <NavLink to="/refs/refsForward">refsForward</NavLink>

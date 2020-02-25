@@ -16,6 +16,7 @@ import useContext from '../hooks/useContext'
 import useRef from '../hooks/useRef'
 import usePrevious from '../hooks/usePrevious'
 import useClientRect from '../hooks/useClientRect'
+import useFetch from '../hooks/useFetch'
 import state from '../immer/state'
 import refsForWard from '../refs/refsForward'
 import higherOrderRefsForwardIndex from '../refs/higherOrderRefsForwardIndex'
@@ -79,6 +80,10 @@ export default [
           {
             path: "/hooks/useClientRect",
             component: useClientRect
+          },
+          {
+            path: "/hooks/useFetch",
+            component: useFetch
           },
         ]
       },

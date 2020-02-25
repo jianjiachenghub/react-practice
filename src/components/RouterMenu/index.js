@@ -82,6 +82,10 @@ export default class RouterMenu extends PureComponent {
     }
   };
 
+  doit = ()=>{
+    alert('ref 获取子组件')
+  }
+
   render() {
     const { routes } = this.props;
     console.log(123);
