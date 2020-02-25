@@ -137,8 +137,8 @@ reuseExistingChunk详细解释
 
 
 
-Chunk 1 (named one): modules A, B, C
-Chunk 2 (named two): modules B, C
+- Chunk 1 (named one): modules A, B, C
+- Chunk 2 (named two): modules B, C
 
 第一种配置：
 ```
@@ -150,9 +150,9 @@ Chunk 2 (named two): modules B, C
 
 它将创建一个包含公共模块B和C的新块：
 
-Chunk 1 (named one): modules A
-Chunk 2 (named two): no modules (removed by optimization)
-Chunk 3 (named one~two): modules B, C
+- Chunk 1 (named one): modules A
+- Chunk 2 (named two): no modules (removed by optimization)
+- Chunk 3 (named one~two): modules B, C
 
 
 
@@ -230,3 +230,9 @@ const App = () => (
   </Router>
 );
 ```
+
+### 部分插件
+
+- react-loadable 动态加载
+- react-lazyload 懒加载
+- react-placeholder 骨架

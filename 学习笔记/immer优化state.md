@@ -63,13 +63,24 @@ addAge0 = ()=>{
 
 ### immer写法
 
-produce对象直接只传一个函数(recipe)，不要第一个对象，就会返回一个producer 
+### 生产者 producer
 
-producer是接受一个对象生产nextState的函数，在这里作为setState的回调，
+这里produce对象直接只传一个函数(recipe)，不要第一个对象，就会返回一个producer
+producer接受一个对象产生nextState
 
-回调的参数就是相当于currentState，然后生成的草稿状态的draftState
+```
+let producer = produce((draftState) => {
+  draftState.x = 2
+});
+let nextState = producer(currentState);
+```
+### setState 回调写法
 
-修改draftState就可以返回一个新的nextState，然后setState执行nextState和this.state的浅比较肯定就不一样了
+- produce对象直接只传一个函数(recipe)，不要第一个对象，就会返回一个producer 
+- producer是接受一个对象生产nextState的函数，在这里作为setState的回调，
+- 回调的参数就是相当于作为setState的回调取到的当前state
+- 然后生成的新的的State
+
 
 ```
   addAge2 = ()=>{
@@ -78,3 +89,4 @@ producer是接受一个对象生产nextState的函数，在这里作为setState�
     }))
   }
 ```
+修改draftState就可以返回一个新的nextState，然后setState执行nextState和this.state的浅比较肯定就不一样了

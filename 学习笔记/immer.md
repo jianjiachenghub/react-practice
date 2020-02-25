@@ -59,14 +59,15 @@ let nextState = produce(currentState, (draft) => {
   draft.a.push(2);
 })
 
-currentState.a === nextState.a; // false
+currentState.a === nextState.a; // false 通过draft修改的部分即使是引用也不等
 currentState.p === nextState.p; // true
 ```
 
 ### 自动冻结功能
 
-Immer 还在内部做了一件很巧妙的事情，那就是通过 produce 生成的 nextState 是被冻结（freeze）的，（Immer 内部使用Object.freeze方法，只冻结 nextState 跟 currentState 相比修改的部分），这样，当直接修改 nextState 时，将会报错。 这使得 nextState 成为了真正的不可变数据。
+Immer 还在内部做了一件很巧妙的事情，那就是通过 produce 生成的 nextState 是被完全冻结（freeze）的。Immer 内部使用Object.freeze方法。这样，当直接修改 nextState 时，将会报错。这使得 nextState 成为了真正的不可变数据。
 
+注意：currentState中，只冻结 currentState  跟 nextState 相比修改的部分
 ```
 
 let nextState = produce(currentState, (draftState) => {
@@ -75,8 +76,6 @@ let nextState = produce(currentState, (draftState) => {
 
 nextState.p.y = 4; // 此处的修改无效
 console.log(nextState.p.y); // 3
-
-
 ```
 
 ### 生产者 producer
