@@ -1,5 +1,12 @@
 > dva.js 用顺手了，快一年没用过redux了，突然拿到一个基于redux的项目有点都快看不懂了，温习一下
 
+## 为什么使用redux-thunk调用API
+
+因为reduce是纯函数，所以没有副作用，调用API返回的数据具有可变性就不纯了。
+因此，我们必须使用redux-thunk从 action creators 那里进行 API 调用。Action creator 派发一个action，将来自API的数据放入action 的 payload 中。
+
+<img src='./img/redux-thunk数据流.png'>
+
 ## redux-thunk 中间件
 
 redux-thunk实现了相关异步流程内聚到redux的流程中，实现middleware的功能，也便于项目的开发与维护，避免冗余代码。而实现的方式便是改写redux中的dispatch API，使其可以除PlainObject外，接受一个函数作为参数。
@@ -14,6 +21,8 @@ const store = createStore(
     applyMiddleware(thunk)
 );
 ```
+
+终结目的就是让dispatch()的参数可以是函数，然后redux-thunk处理这个函数返回一个对象，然后才真正发给reducers
 
 ## redux-thunk 内部干了什么
 

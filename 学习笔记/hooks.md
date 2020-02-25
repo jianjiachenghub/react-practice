@@ -1,11 +1,81 @@
+## 为什么需要hooks
+
+设计Hooks主要是解决ClassComponent的几个问题：
+
+- 很难复用逻辑（只能用HOC，或者render props），会导致组件树层级很深
+- 会产生巨大的组件（指很多代码必须写在类里面）
+- 类组件很难理解，比如方法需要bind，this指向不明确
+
 ## React Hooks 实现原理
+
+### Fiber节点的数据结构
+
+```
+function FiberNode(
+  tag: WorkTag,
+  pendingProps: mixed,
+  key: null | string,
+  mode: TypeOfMode,
+) {
+  // Instance
+  this.tag = tag;
+  this.key = key;
+  this.elementType = null;  // 就是ReactElement的`$$typeof`
+  this.type = null;         // 就是ReactElement的type
+  this.stateNode = null;
+
+  // Fiber
+  this.return = null;
+  this.child = null;
+  this.sibling = null;
+  this.index = 0;
+
+  this.ref = null;
+
+  this.pendingProps = pendingProps;
+  this.memoizedProps = null;
+  this.updateQueue = null;
+  this.memoizedState = null;
+  this.firstContextDependency = null;
+
+  // ...others
+}
+
+```
+
+### memoizedState
+
+Hooks中，React并不知道我们调用了几次useState，所以在保存state这件事情上，React想出了一个比较有意思的方案，那就是调用useState后设置在memoizedState上的对象长
+
+```
+{
+  baseState,
+  next,
+  baseUpdate,
+  queue,
+  memoizedState
+}
+
+```
+
+在FunctionalComponent中调用的useState都会有一个对应的Hook对象，他们按照执行的顺序以类似链表的数据格式存放在Fiber.memoizedState上。
+
+应该在创建新Fiber Tree（workInProgressTree）的时候把指针指回来？(个人猜测)
+
+###  如何取出hooks的数据
 
 react会生成一个Fiber树，每个组件在Fiber树上都有对应的节点FiberNode。组件的所有hook状态都存在FiberNode的memoizedState属性上。
 当执行这个函数组件的时候，第一次useSomeHook语句，就会去取第一个hook状态。
 第二次遇到useSomeHook语句，就取第二个hook状态。以此类推。
 所以，可以把这些hook状态理解成一个数组（但其实是个链表）。
 
-<img src='./img/hooks1.png'>
+<img src='./img/hooksFiber.png'>
+
+
+
+
+
+
 
 
 ## React 子组件Props改变触发渲染

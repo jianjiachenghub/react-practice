@@ -37,6 +37,8 @@ function ListItem({ item }) {
 ### React-loadable
 
 #### 懒加载
+
+结合动态载入import()返回一个Promise，我们可以根据状态来显示Loading，Loadable这个库已经封装好了
 ```
 import Loadable from 'react-loadable';
 import Loading from './my-loading-component';
