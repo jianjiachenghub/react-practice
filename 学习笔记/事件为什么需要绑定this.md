@@ -21,4 +21,4 @@ function invokeGuardedCallback(name, func, a) {
 
 func就是我们绑定的方法，可以看到是直接执行的，那么根据函数调用模式，func内部的this是指向undefined的(严格模式，非严格模式的话指向window)
 
-而我们希望在绑定的函数里通过this拿到我们类组件里的属性，所以必须绑定this
+而我们希望在绑定的函数里通过this拿到我们类组件里的成员方法和属性，所以必须绑定this指向我们的ReactClass(箭头函数无需绑定)

@@ -168,3 +168,35 @@ function Content() {
   );
 }
 ```
+
+## 为什么推荐用新的API
+>https://juejin.im/post/5baa1f09f265da0a867c3b78#heading-7
+
+老版的性能存在较大的问题。因为childContext对下层的组件影响太大了，即使子孙组件没有用到childContext，子孙组件仍然要进行Update，严重影响了性能
+
+
+
+React是一个树结构，要进行更新只能通过某个节点执行setState、forceUpdate等方法，在某一个节点执行了这些方法之后，React会向上搜索直到找到root节点，然后把root节点放到更新队列中，等待更新。
+
+所以React的更新都是从root往下执行的，他会尝试重新构建一个新的树，在这个过程中能复用之前的节点就会复用，而我们现在看到的情况，就是因为复用算法根据不同的情况而得到的不同的结果
+
+我们来看一小段源码：
+
+```
+if (
+  !hasLegacyContextChanged() &&
+  (updateExpirationTime === NoWork ||
+    updateExpirationTime > renderExpirationTime)
+) {
+  // ...
+  return bailoutOnAlreadyFinishedWork(
+    current,
+    workInProgress,
+    renderExpirationTime,
+  );
+}
+```
+
+如果能满足这个判断条件并且进入bailoutOnAlreadyFinishedWork，那么有极高的可能这个节点以及他的子树都不需要更新，React会直接跳过，我们使用新的context API的时候就是这种情况，但是使用老的context API是永远不可能跳过这个判断的
+
+老的context API使用过程中，一旦有一个节点提供了context，那么他的所有子节点都会被视为有side effect的，因为React本身并不判断子节点是否有使用context，以及提供的context是否有变化，所以一旦检测到有节点提供了context，那么他的子节点在执行hasLegacyContextChanged的时候，永远都是true的，而没有进入bailoutOnAlreadyFinishedWork，就会变成重新reconcile子节点，虽然最终可能不需要更新DOM节点，但是重新计算生成Fiber对象的开销还是又得，一两个还好，数量多了时间也是会被拉长的。

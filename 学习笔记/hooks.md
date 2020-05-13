@@ -1,10 +1,12 @@
 ## 为什么需要hooks
 
-设计Hooks主要是解决ClassComponent的几个问题：
-
-- 很难复用逻辑（只能用HOC，或者render props），会导致组件树层级很深
-- 会产生巨大的组件（指很多代码必须写在类里面）
-- 类组件很难理解，比如方法需要bind，this指向不明确
+- 设计Hooks主要是解决ClassComponent的几个问题：
+  - 很难复用逻辑（只能用HOC，或者render props），会导致组件树层级很深
+  - 会产生巨大的组件（指很多代码必须写在类里面）
+  - 类组件很难理解，比如方法需要bind，this指向不明确
+- 能在无需修改组件结构的情况下复用状态逻辑（自定义 Hooks ）
+- 能将组件中相互关联的部分拆分成更小的函数（比如设置订阅或请求数据）
+- 副作用的关注点分离：副作用指那些没有发生在数据向视图转换过程中的逻辑，如 ajax 请求、访问原生dom 元素、本地持久化缓存、绑定/解绑事件、添加订阅、设置定时器、记录日志等。以往这些副作用都是写在类组件生命周期函数中的。而 useEffect 在全部渲染完毕后才会执行，useLayoutEffect 会在浏览器 layout 之后，painting 之前执行。
 
 ## React Hooks 实现原理
 
@@ -73,9 +75,80 @@ react会生成一个Fiber树，每个组件在Fiber树上都有对应的节点Fi
 
 
 
+## 模拟实现useState
+
+```
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+let firstWorkInProgressHook = {memoizedState: null, next: null};
+let workInProgressHook;
+
+function useState(initState) {
+    let currentHook = workInProgressHook.next ? workInProgressHook.next : {memoizedState: initState, next: null};
+
+    function setState(newState) {
+        currentHook.memoizedState = newState;
+        render();
+    }
+  	// 这就是为什么 useState 书写顺序很重要的原因
+		// 假如某个 useState 没有执行，会导致指针移动出错，数据存取出错
+    if (workInProgressHook.next) {
+        // 这里只有组件刷新的时候，才会进入
+        // 根据书写顺序来取对应的值
+        // console.log(workInProgressHook);
+        workInProgressHook = workInProgressHook.next;
+    } else {
+        // 只有在组件初始化加载时，才会进入
+        // 根据书写顺序，存储对应的数据
+        // 将 firstWorkInProgressHook 变成一个链表结构
+        workInProgressHook.next = currentHook;
+        // 将 workInProgressHook 指向 {memoizedState: initState, next: null}
+        workInProgressHook = currentHook;
+        // console.log(firstWorkInProgressHook);
+    }
+    return [currentHook.memoizedState, setState];
+}
+
+function Counter() {
+    // 每次组件重新渲染的时候，这里的 useState 都会重新执行
+    const [name, setName] = useState('计数器');
+    const [number, setNumber] = useState(0);
+    return (
+        <>
+            <p>{name}:{number}</p>
+            <button onClick={() => setName('新计数器' + Date.now())}>新计数器</button>
+            <button onClick={() => setNumber(number + 1)}>+</button>
+        </>
+    )
+}
+
+function render() {
+    // 每次重新渲染的时候，都将 workInProgressHook 指向 firstWorkInProgressHook
+    workInProgressHook = firstWorkInProgressHook;
+    ReactDOM.render(<Counter/>, document.getElementById('root'));
+}
+
+render();
+
+```
+
+## Effect Hook
+
+### useEffect()
+useEffect() 可以让你在函数组件中执行副作用操作
+默认情况下，它在第一次渲染之后和每次更新之后都会执行。
+如果你熟悉 React class 的生命周期函数，你可以把 useEffect Hook 看做 componentDidMount，componentDidUpdate 和 componentWillUnmount(Effect最后return的函数) 这三个函数的组合。
+
+### useLayoutEffect
 
 
+其函数签名与 useEffect 相同，但它会在所有的 DOM 变更之后同步调用 effect。可以使用它来读取 DOM 布局并同步触发重渲染。在浏览器执行绘制之前，useLayoutEffect 内部的更新计划将被同步刷新。
 
+useLayoutEffect和useEffect类似，但是不同的是：
+
+- useEffect，使用useEffect不会阻塞浏览器的重绘
+- useLayoutEffect, 使用useLayoutEffect，会阻塞浏览器的重绘。如果你需要手动的修改Dom，推荐使用useLayoutEffect。因为如果在useEffect中更新Dom，useEffect不会阻塞重绘，用户可能会看到因为更新导致的闪烁（https://juejin.im/post/5de38c76e51d455f9b335eff
 
 
 ## React 子组件Props改变触发渲染
@@ -124,7 +197,7 @@ hooks 没有state,并且每次更新相当于重新执行了一次函数
 const [number,setNumber] = useState(0) 也就是说每次都会生成一个新的值（哪怕这个值没有变化），即使使用了 React.memo ，也还是会重新渲染
 
 
-### 更深入的优化：
+### 更深入的优化 useCallback useMemo：
 
 useCallback：接收一个内联回调函数参数和一个依赖项数组（子组件依赖父组件的状态，即子组件会使用到父组件的值） ，useCallback 会返回该回调函数的 
 memoized 版本，该回调函数仅在某个依赖项改变时才会更新
@@ -147,6 +220,84 @@ const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
 区别：useMemo返回的是一个变量(可以把计算这个变量的过程放入hook，避免重复计算)，而useCallback返回的是一个函数(就是传入的第一个参数)
 
 
-useCallback(fn, deps) 相当于 useMemo(() => fn, deps)。useMemo返回的变量变成了函数
+useCallback(fn, deps) 相当于 useMemo(() => fn, deps)。useMemo返回的变量变成了函数。好像区别也就是第一个回调的返回值一个是函数，一个是数值
 
+## useState的一些优化
 
+### 避免闭包导致hooks状态未更新
+
+```
+function DelayedCount() {
+  const [count, setCount] = useState(0);
+
+  const handleClickAsync = () => {
+    setTimeout(function delay() {
+      //setCount(count + 1);多次点击不能这么写，不然你点三下也是+1，和setSate的批量更新有点类似
+      // 闭包（例如事件处理程序，回调）可能会从函数组件作用域中捕获状态变量,闭包捕获了过时的状态值可能就无法更新
+      // 可以使用回调写法
+      setCount(count => count + 1);
+    }, 3000);
+  }
+
+  return (
+    <div>
+      {count}
+      <button onClick={handleClickAsync}>Increase async</button>
+    </div>
+  );
+}
+
+```
+
+### useState批量更新
+
+setCount后不会马上更新，会被后面的合并，setCount最后替换成0+1=1，且只会触发一次渲染。
+与在类中使用 setState 的异同点：
+- 相同点：也是异步的，例如在 合成事件与生命周期中(包含useEffect)，调用两次 setState，数据只改变一次。
+- 不同点：
+  - 类中的 setState 是合并，而函数组件中的 setState 是替换。
+  - hooks前者每次更新后state都是新值，换而言之其实是不可变数据的概念。而后者使用后，其实更新state部分的值，引用本身并无改变。
+```
+import React, { useState } from "react";
+import ReactDOM from "react-dom";
+
+import "./styles.css";
+
+function DelayedCount() {
+  const [count, setCount] = useState(0);
+
+  const handleClickAsync = () => {
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+  };
+  // 更新后也只会打出一个123，也就是只有一次setCount
+  console.log(123);
+  return (
+    <div>
+      {count}
+      <button onClick={handleClickAsync}>Increase async</button>
+    </div>
+  );
+}
+
+const rootElement = document.getElementById("root");
+ReactDOM.render(<DelayedCount />, rootElement);
+```
+
+### 避免useState重复初始化
+
+```
+// 直接传入一个值，在每次 render 时都会执行 createRows 函数获取返回值
+const [rows, setRows] = useState(createRows(props.count));
+```
+改为传入一个函数
+```
+// createRows 只会被执行一次
+const [rows, setRows] = useState(() => createRows(props.count));
+```
+
+### 各种封装的hooks
+
+- https://zh-hans.reactjs.org/docs/hooks-reference.html
+- https://streamich.github.io/react-use/

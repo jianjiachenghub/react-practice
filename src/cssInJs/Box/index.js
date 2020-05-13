@@ -19,9 +19,13 @@ const divs = styled.div`
 `;
 
 function Box() {
+    let isUpdate = ()=>{
+      console.log(111)
+    }
+    console.log(222)
     return (
 
-    <divs>
+    <divs onClick={isUpdate}>
         123123
    
       </divs>
