@@ -232,6 +232,44 @@ render() {
 如果不使用 !!b 进行强转数据类型，会在页面里面输出 0。
 
 
+## 为什么每次都需要引入React
+
+不写一般JSX都会直接报错
+```
+import React from 'react'
+```
+原因：因为JSX语法会被编译：
+
+```
+import React, { Component } from 'react';
+
+class Process extends Component {
+
+  render() {
+    return (<div>哈哈哈</div>)
+  }
+  
+}
+
+```
+
+转义为React.createElement 来创建DOM书，所以需要
+```
+import React, { Component } from 'react';
+
+class Process extends Component {
+
+  render() {
+    return React.createElement(
+      'div',
+      null,
+      '\u54C8\u54C8\u54C8'
+    );
+  }
+}
+```
+
+
 ## props改变为什么可以重新渲染视图
 >官网原话：state 和 props 之间有什么区别？
 props （简称“属性”）和 state 都是在改变时会触发一次重新渲染的 JavaScript 对象。虽然两者都具有影响渲染输出的信息，但它们在一个重要方面是不同的： props 传递到组件（类似于函数参数），而 state 是在组件内管理的（类似于函数中声明的变量）。
