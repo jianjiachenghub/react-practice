@@ -75,7 +75,7 @@ IndexRoute就是解决这个问题，显式指定Home是根路由的子组件，
 
 ### 比如Route
 
-这种相当于注册一个事件，的url发生改变的时候，满足`/PropsButton`匹配，就去发布渲染PropsButton组件，有点发布订阅的感觉（我也不知能不能怎么说，先这么理解一哈
+这种相当于注册一个事件，的url发生改变的时候，上层的Router会监听到，并更新渲染整个下层，下层的route满足`/PropsButton`匹配，就去发布渲染PropsButton组件，有点发布订阅的感觉（我也不知能不能怎么说，先这么理解一哈
 
 ```
 <Route path="/PropsButton" component={PropsButton} />

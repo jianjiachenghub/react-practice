@@ -1,10 +1,19 @@
 ## 事件系统
+> 解析：https://juejin.im/post/6844903704261312520
 
 React 有自身的一套事件系统，叫作 SyntheticEvent。叫什么不重要，实现上，其实就是通过在 document 上注册事件代理了组件树中所有的事件（facebook/react#4335），并且它监听的是 document 冒泡阶段。
 
 当你在页面上点击按钮，事件开始在原生 DOM 上走捕获冒泡流程。React 监听的是 document 上的冒泡阶段。事件冒泡到 document 后，React 将事件再派发到组件树中，然后事件开始在组件树 DOM 中走捕获冒泡流程。
 
 JSX上面的事件全部绑定在 document 上，不仅减少了内存消耗，而且组件销毁的时候可以统一移除事件
+
+## 为什么需要事件系统
+
+- 首先对于性能来说，React作为一套View层面的框架，通过渲染得到vDOM，再由diff算法决定DOM树那些结点需要新增、替换或修改，假如直接在DOM结点插入原生事件监听，则会导致频繁的调用addEventListener和removeEventListener，造成性能的浪费。
+- 其次React合成的SyntheticEvent采用了池的思想，从而达到节约内存，避免频繁的创建和销毁事件对象的目的。这也是如果我们需要异步使用一个syntheticEvent，需要执行event.persist()才能防止事件对象被释放的原因。
+- 最后在React源码中随处可见batch做批量更新，基本上凡是可以批量处理的事情（最普遍的setState）React都会将中间过程保存起来，留到最后面才flush掉。
+- 使得不同平台只需要通过加入EventEmitter以及对应的Renderer就能使用相同的一个事件系统
+- 而对于不同的浏览器而言，React帮我们统一了事件，做了浏览器的兼容
 
 ## dispatchEvent 进行事件分发
 

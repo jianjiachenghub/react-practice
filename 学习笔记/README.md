@@ -274,5 +274,42 @@ class Process extends Component {
 >官网原话：state 和 props 之间有什么区别？
 props （简称“属性”）和 state 都是在改变时会触发一次重新渲染的 JavaScript 对象。虽然两者都具有影响渲染输出的信息，但它们在一个重要方面是不同的： props 传递到组件（类似于函数参数），而 state 是在组件内管理的（类似于函数中声明的变量）。
 
-在使用dva的时候我就在想为什么从外部modal流向props的数据流改变，为什么组件可以重新渲染？
+
 props 一旦传入，你就不可以在组件内部对它进行修改。但是你可以通过父组件主动重新渲染的方式来传入新的 props，从而达到更新的效果。因为父组件重新渲染会触发子组件的重新渲染。所以官方所说的props改变会更新视图是一个表象，根本原因是父组件的重新渲染导致的
+
+
+
+## 为什么开发环境下每次都渲染了两次
+
+React 在 Dev mode（strictMode） 下会刻意执行两次渲染，以防止组件内有什么 side effect 引起 bug，提前预防。
+
+
+对于React而言，它推崇的是渲染结果只与state和props有关。即result=f(props, state).
+
+如果组件每次的state和props是一样的，就应该返回一样的结果，若返回结果不一样，说明代码中可能存在副作用。
+
+如示例中的count。这样写是不推崇的。
+```
+import React from 'react'
+
+let count = 0;
+
+const Page = () => {
+
+  count++
+
+  console.log(`run ${count} times`)
+
+  return (
+    <div>Page</div>
+  )
+}
+
+export default Page
+```
+
+## React 里的副作用
+
+首先解释纯函数（Pure function）：给一个 function 相同的参数，永远会返回相同的值，并且没有副作用；这个概念拿到 React 中，就是给一个 Pure component 相同的 props, 永远渲染出相同的视图，并且没有其他的副作用；纯组件的好处是，容易监测数据变化、容易测试、提高渲染性能等；
+
+副作用（Side Effect）是指一个 function 做了和本身运算返回值无关的事，比如：修改了全局变量、修改了传入的参数、甚至是 console.log()，所以 ajax 操作，修改 dom 都是算作副作用的；

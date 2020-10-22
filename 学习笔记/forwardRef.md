@@ -170,6 +170,7 @@ function logProps(Component) {
 ```
 
 #### 调用FancyButton
+
 ```
 import React, { PureComponent } from "react";
 import FancyButton from "./higherOrderRefsForward";

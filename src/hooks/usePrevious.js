@@ -51,3 +51,11 @@ export  function usePrevious (props) {
     console.log(3)
     return ref.current;
   }
+
+  // usePrevious.js:45 1
+  // usePrevious.js:51 3
+  // usePrevious.js:34 prevCount 0
+  // usePrevious.js:38 {current: null}
+  // usePrevious.js:30 Counter1
+  // usePrevious.js:48 2
+  // usePrevious.js:36 Counter2 {current: h1}

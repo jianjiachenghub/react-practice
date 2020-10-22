@@ -110,7 +110,7 @@ Route 接受上层的 Router 传入的 context，Router 中的 history 监听着
 
 
 
-```
+```js
 
 function getContext(props, context) {
   const location = props.location || context.location;

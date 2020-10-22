@@ -134,6 +134,7 @@ render();
 ```
 
 ## Effect Hook
+> 原理：https://react.jokcy.me/book/hooks/hooks-use-effect.html
 
 ### useEffect()
 useEffect() 可以让你在函数组件中执行副作用操作
@@ -187,7 +188,7 @@ hooks 没有state,并且每次更新相当于重新执行了一次函数
 ### 一般的优化：
 
 类组件：可以使用 pureComponent ；
-函数组件：使用 React.memo ，将函数组件传递给 memo 之后，就会返回一个新的组件，新组件的功能：如果接受到的属性不变，则不重新渲染函数；
+函数组件：使用 React.memo ，将函数组件传递给 memo 之后，就会返回一个新的组件，新组件的功能：如果接受到的属性不变，则不重新渲染函数(只对props进行浅比较)
 
 
 ### 但是怎么保证属性不会变呢 
@@ -301,3 +302,189 @@ const [rows, setRows] = useState(() => createRows(props.count));
 
 - https://zh-hans.reactjs.org/docs/hooks-reference.html
 - https://streamich.github.io/react-use/
+
+
+## 自定义Hooks
+
+
+基于Hooks，我们可以把可复用的状态逻辑抽离到一个函数中作为自定义Hooks，通过多个Hooks的组合完成复杂逻辑共享。
+
+多处复用同一个Hooks时，只是复用Hooks的处理状态的逻辑，每一个Hooks中的状态都是独立的。
+
+函数式组件结合hooks，组件的每一次渲染获得的state都是独立的，可以实现多种状态的组件需求，而class类组件中访问的this永远是指向最新的实例状态
+
+- Hook 是一种复用状态逻辑的方式，它不复用 state 本身
+- 事实上 Hook 的每次调用都有一个完全独立的 state。自定义 Hook 是一种重用状态逻辑的机制(例如设置为订阅并存储当前值)，所以每次使用自定义 Hook 时，其中的所有 state 和副作用都是完全隔离的。
+- 自定义 Hook 更像是一种约定，而不是一种功能。如果函数的名字以 use 开头，并且调用了其他的 Hook，则就称其为一个自定义 Hook。（use开头的函数React会检测hooks写法是否符合规则）
+- 自定义 Hook 是一种自然遵循 Hook 设计的约定，而并不是 React 的特性
+
+
+## 在多个 Hook 之间传递信息
+由于 Hook 本身就是函数，因此我们可以在它们之间传递信息。
+
+```
+  const [recipientID, setRecipientID] = useState(1);
+  const isRecipientOnline = useFriendStatus(recipientID);
+```
+
+## 自定义Hooks的调用关系
+>个人感觉执行方式和自定义hooks的函数内容展开放到外面一致，也就是说自定义hooks内部的setValue会导致外面使用该Hooks的组件更新
+
+```js
+ export default function Counter() {
+    const h1 = useRef(null)
+    useEffect(() => {
+        console.log('Counter1')
+      });
+    const [count, setCount] = useState(0);
+    const prevCount = usePrevious2(count);
+    console.log('prevCount',0)
+    useEffect(() => {
+        console.log('Counter2',h1)
+      });
+ return <h1 ref={h1} onClick={()=>setCount(count+1)}>Now: {count}, before: {prevCount}{console.log(h1)}</h1>;
+  }
+  
+
+  // 内部useEffect其实就是在Counter挂载完后执行的副作用
+  // 所以useEffect在返回后执行 所以prevCount第一次打出来是undefined
+  function usePrevious2(value) {
+    console.log(1)
+    const ref = useRef();
+    useEffect(() => {
+        console.log(2)
+      ref.current = value;
+    });
+    console.log(3)
+    return ref.current;
+  }
+```
+
+```
+usePrevious.js:45 1
+usePrevious.js:51 3
+usePrevious.js:34 prevCount 0
+usePrevious.js:38 {current: null} // beforeAmount
+// 按照effects注册的顺序调用
+usePrevious.js:30 Counter1 // didAmount
+usePrevious.js:48 2
+usePrevious.js:36 Counter2 {current: h1}
+```
+
+
+### Hooks一般不要与UI耦合
+>https://zhuanlan.zhihu.com/p/100683538?hmsr=toutiao.io 谈React Hooks的逻辑抽象与封装
+
+
+## 依赖项的写法
+
+如果你指定了一个 依赖列表 作为 useEffect、useLayoutEffect、useMemo、useCallback 或 useImperativeHandle 的最后一个参数，它必须包含回调中的所有值，并参与 React 数据流。这就包括 props、state，以及任何由它们衍生而来的东西。
+
+在依赖列表中省略函数是否安全？
+```jsx
+function Example({ someProp }) {
+  function doSomething() {
+    console.log(someProp);
+  }
+
+  useEffect(() => {
+    doSomething();
+  }, []); // 🔴 这样不安全（它调用的 `doSomething` 函数使用了 `someProp`）
+}
+```
+
+要记住 effect 外部的函数使用了哪些 props 和 state 很难。这也是为什么 通常你会想要在 effect 内部 去声明它所需要的函数。 这样就能容易的看出那个 effect 依赖了组件作用域中的哪些值：
+
+```JSX
+function Example({ someProp }) {
+  useEffect(() => {
+    function doSomething() {
+      console.log(someProp);
+    }
+
+    doSomething();
+  }, [someProp]); // ✅ 安全（我们的 effect 仅用到了 `someProp`）
+}
+```
+
+万不得已的情况下，你可以 把函数加入 effect 的依赖但 把它的定义包裹 进 useCallback Hook。这就确保了它不随渲染而改变，除非 它自身 的依赖发生了改变：
+
+```TSX
+function ProductPage({ productId }) {
+  // ✅ 用 useCallback 包裹以避免随渲染发生改变
+  const fetchProduct = useCallback(() => {
+    // ... Does something with productId ...
+  }, [productId]); // ✅ useCallback 的所有依赖都被指定了
+
+  return <ProductDetails fetchProduct={fetchProduct} />;
+}
+
+function ProductDetails({ fetchProduct }) {
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]); // ✅ useEffect 的所有依赖都被指定了
+  // ...
+}
+```
+
+## 如何从 useCallback 读取一个经常变化的值？
+
+在某些罕见场景中，你可能会需要用 useCallback 记住一个回调，但由于内部函数必须经常重新创建，记忆效果不是很好。如果你想要记住的函数是一个事件处理器并且在渲染期间没有被用到，你可以 把 ref 当做实例变量 来用，并手动把最后提交的值保存在它当中：
+
+```JSX
+function Form() {
+  const [text, updateText] = useState('');
+  const textRef = useRef();
+
+  useEffect(() => {
+    textRef.current = text; // 把它写入 ref
+  });
+
+  const handleSubmit = useCallback(() => {
+    const currentText = textRef.current; // 从 ref 读取它
+    alert(currentText);
+  }, [textRef]); // 不要像 [text] 那样重新创建 handleSubmit
+
+  return (
+    <>
+      <input value={text} onChange={e => updateText(e.target.value)} />
+      <ExpensiveTree onSubmit={handleSubmit} />
+    </>
+  );
+}
+```
+
+这是一个比较麻烦的模式，但这表示如果你需要的话你可以用这条出路进行优化。如果你把它抽取成一个自定义 Hook 的话会更加好受些：
+```JSX
+function Form() {
+  const [text, updateText] = useState('');
+  // 即便 `text` 变了也会被记住:
+  const handleSubmit = useEventCallback(() => {
+    alert(text);
+  }, [text]);
+
+  return (
+    <>
+      <input value={text} onChange={e => updateText(e.target.value)} />
+      <ExpensiveTree onSubmit={handleSubmit} />
+    </>
+  );
+}
+
+function useEventCallback(fn, dependencies) {
+  const ref = useRef(() => {
+    throw new Error('Cannot call an event handler while rendering.');
+  });
+
+  useEffect(() => {
+    ref.current = fn;
+  }, [fn, ...dependencies]);
+
+  return useCallback(() => {
+    const fn = ref.current;
+    return fn();
+  }, [ref]);
+}
+```
+
+无论如何，我们都 不推荐使用这种模式 ，只是为了文档的完整性而把它展示在这里。相反的，我们更倾向于 避免向下深入传递回调(用context+dispatch)。
