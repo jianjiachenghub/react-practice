@@ -352,6 +352,7 @@ redux-thunk最重要的思想，就是可以接受一个返回函数的action cr
 
 ```
 
+
 function createThunkMiddleware(extraArgument) {
   return ({ dispatch, getState }) => next => action => {
     if (typeof action === 'function') {
@@ -431,6 +432,22 @@ const mapDispatchToProps = (dispatch) => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(React.memo(RecommendMy));
 ```
+## 为什么要求reducer必须是纯函数，且不能有异步
+>https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/65
+
+
+如果你经常用React+Redux开发，那么就应该了解Redux的设计初衷。Redux的设计参考了Flux的模式，作者希望以此来实现时间旅行，保存应用的历史状态，实现应用状态的可预测。所以整个Redux都是函数式编程的范式，要求reducer是纯函数也是自然而然的事情，使用纯函数才能保证相同的输入得到相同的输入，保证状态的可预测。所以Redux有三大原则：
+
+单一数据源，也就是state
+state 是只读，Redux并没有暴露出直接修改state的接口，必须通过action来触发修改
+使用纯函数来修改state，reducer必须是纯函数
+
+reducer是用来计算state的，所以它的返回值必须是state，也就是我们整个应用的状态，而不能是promise之类的。
+
+
+要在reducer中加入异步的操作，如果你只是单纯想执行异步操作，不会等待异步的返回，那么在reducer中执行的意义是什么。如果想把异步操作的结果反应在state中，首先整个应用的状态将变的不可预测，违背Redux的设计原则，其次，此时的currentState将会是promise之类而不是我们想要的应用状态，根本是行不通的。
+因为异步操作是成功还是失败不可预测，什么时候进行异步操作也不可预测；当异步操作成功或失败时，如果不 commit(mutation) 或者 dispatch(action)，Vuex 和 Redux 就不能捕获到异步的结果从而进行相应的操作，实质上任何在回调函数中进行的状态的改变都是不可追踪的。
+
 
 ### api/request
 ```
