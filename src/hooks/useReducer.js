@@ -15,7 +15,7 @@ function init(initialState){
     return {number:initialState};
 }
 export default function Counter(){
-    const [state, dispatch] = useReducer(reducer, initialState,init);
+    const [state, dispatch] = useReducer(reducer, initialState,init); // state = init(initialState)
     return (
         <>
           Count: {state.number}

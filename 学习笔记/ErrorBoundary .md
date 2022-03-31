@@ -39,3 +39,7 @@ class ErrorBoundary extends React.Component {
 }
 
 ```
+
+## 错误边界的范围
+
+如果ErrorBoundary里有多个组件，其中一个渲染出错，那其它也会出错，说以需要确定划分的界限

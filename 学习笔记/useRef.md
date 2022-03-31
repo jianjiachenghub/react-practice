@@ -230,7 +230,7 @@ const useContextMenu = (itemArr, targetSelector, deps) => {
       window.removeEventListener('contextmenu', handleContextMenu)
     }
   }, deps)
-  return clickedElement
+  return Dom
 }
 ```
 

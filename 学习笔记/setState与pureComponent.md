@@ -2,7 +2,7 @@
 
 setState在合成事件里本来是就有一个批量更新的逻辑，最后所有setSate最后计算的最终状态如何合并到state里？做不做浅比较？
 
-## 合并到state
+### 合并到state
 
 Object.assign的作用：
 
@@ -14,7 +14,7 @@ Object.assign的作用：
 Object.assign({}, prevState, partialState);
 ```
 
-## 如果合并和原来的state相同岂不是浪费
+### 如果合并和原来的state相同岂不是浪费
 
 Component组件的state不会进行对比，只要setState就一定会触发渲染。
 
@@ -28,6 +28,3 @@ Component组件的state不会进行对比，只要setState就一定会触发渲�
  }
 ```
 虽然可以避免没有改变的元素发生不必要的重新渲染，但是使用上面的这种浅比较还是会带来一些问题,比如深层级的改变了，却不会渲染。此时可以通过不可变数据来实现。
-
-
-## 
